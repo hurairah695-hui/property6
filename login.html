@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PropDeal · Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="auth">
+  <div class="hbg"></div>
+  <div class="acard tilt">
+    <div class="brand"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="2" stroke="#C79A3B" stroke-width="2.5"/><path d="M11 10h3M18 10h3M11 15h3M18 15h3M13 28v-6h6v6" stroke="#C79A3B" stroke-width="2.5" stroke-linecap="round"/></svg>PropDeal</div>
+    <h1 id="h1">Sign in</h1>
+    <p class="lead" id="lead">Welcome back. Choose your role to continue.</p>
+    <div class="tabs t2" role="tablist"><button type="button" class="tab" data-v="l" aria-selected="true">Sign in</button><button type="button" class="tab" data-v="s" aria-selected="false">Create account</button></div>
+    <form id="lf" novalidate>
+      <div class="roles" role="radiogroup" aria-label="Sign in as">
+        <label><input type="radio" name="role" value="seller" checked>Seller</label>
+        <label><input type="radio" name="role" value="buyer">Buyer</label>
+        <label><input type="radio" name="role" value="admin">Admin</label>
+      </div>
+      <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="username" placeholder="you@example.com"></div>
+      <div class="field"><label for="pw">Password</label><div class="ctl"><input id="pw" type="password" autocomplete="current-password"><button type="button" class="show" data-pw="#pw">Show</button></div></div>
+      <label class="remember"><input type="checkbox" id="rem"> Keep me signed in on this device</label>
+      <div class="alert" id="ls" role="alert" hidden></div>
+      <button class="btn" id="lb" type="submit" style="margin-top:14px">Sign in</button>
+    </form>
+    <form id="su" hidden novalidate>
+      <div class="roles" role="radiogroup" aria-label="I am a"><label><input type="radio" name="srole" value="buyer" checked>Buyer</label><label><input type="radio" name="srole" value="seller">Seller</label></div>
+      <div class="field"><label for="sn">Full name</label><input id="sn" type="text" autocomplete="name" maxlength="50"></div>
+      <div class="field"><label for="sa">Age</label><input id="sa" type="text" inputmode="numeric" maxlength="3" autocomplete="off" placeholder="e.g. 25"></div>
+      <div class="field"><label for="se">Email</label><input id="se" type="email" autocomplete="email" placeholder="you@example.com"></div>
+      <div class="field"><label for="sp">Password</label><div class="ctl"><input id="sp" type="password" autocomplete="new-password"><button type="button" class="show" data-pw="#sp">Show</button></div>
+        <ul class="rules" id="rules"><li data-r="len">6+ characters</li><li data-r="low">lowercase</li><li data-r="up">UPPERCASE</li><li data-r="num">number</li><li data-r="sp">special (@ # $)</li></ul></div>
+      <div class="alert" id="ss" role="alert" hidden></div>
+      <button class="btn" type="submit" style="margin-top:14px">Create account</button>
+    </form>
+    <div class="demo" id="demo"><b>Demo accounts</b> (optional)
+      <div class="row"><button type="button" data-r="seller">Use Seller</button><button type="button" data-r="buyer">Use Buyer</button><button type="button" data-r="admin">Use Admin</button></div></div>
+  </div>
+</section>
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+<script>
+const v=validSession();if(v)location.replace(HOME[v.role]);
+const lf=$('#lf'),su=$('#su');
+const banner=(el,msg)=>{el.textContent=msg||'';el.hidden=!msg};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
+  const s=b.dataset.v==='s';lf.hidden=s;su.hidden=!s;$('#demo').hidden=s;$('#h1').textContent=s?'Create account':'Sign in';
+  $('#lead').textContent=s?'Join as a buyer to book meetings, or as a seller to list properties.':'Welcome back. Choose your role to continue.';
+  clearErrs(lf);clearErrs(su);banner($('#ls'));banner($('#ss'))});
+document.querySelectorAll('[data-pw]').forEach(b=>b.addEventListener('click',()=>{const i=$(b.dataset.pw),s=i.type==='text';i.type=s?'password':'text';b.textContent=s?'Show':'Hide'}));
+document.querySelectorAll('.demo button').forEach(b=>b.addEventListener('click',()=>{
+  const r=b.dataset.r,e=r+'@example.com';$('#em').value=e;$('#pw').value=USERS[e][0];lf.role.value=r;clearErrs(lf);banner($('#ls'))}));
+
+/* sign in */
+const lEm=watch($('#em'),vEmail),lPw=watch($('#pw'),v=>vPass(v,false));
+lf.addEventListener('submit',e=>{e.preventDefault();banner($('#ls'));
+  const a=lEm(),b=lPw();
+  if(!a||!b){banner($('#ls'),'Please fix the highlighted fields.');(a?$('#pw'):$('#em')).focus();return}
+  const btn=$('#lb');btn.disabled=true;btn.textContent='Signing in…';
+  setTimeout(()=>{const email=$('#em').value.trim().toLowerCase(),u=allUsers()[email];
+    if(!u||u[0]!==$('#pw').value||u[1]!==lf.role.value){btn.disabled=false;btn.textContent='Sign in';banner($('#ls'),'Email, password or role is incorrect.');return}
+    signIn({email,role:u[1],name:u[2]},$('#rem').checked)},400)});
+
+/* create account */
+digits($('#sa'),3);
+const RULES={len:v=>v.length>=6,low:v=>/[a-z]/.test(v),up:v=>/[A-Z]/.test(v),num:v=>/\d/.test(v),sp:v=>/[^A-Za-z0-9]/.test(v)};
+$('#sp').addEventListener('input',()=>document.querySelectorAll('#rules li').forEach(li=>li.classList.toggle('ok',RULES[li.dataset.r]($('#sp').value))));
+const sN=watch($('#sn'),vName),sA=watch($('#sa'),vAge),sE=watch($('#se'),vEmail),sP=watch($('#sp'),v=>vPass(v,true));
+su.addEventListener('submit',e=>{e.preventDefault();banner($('#ss'));
+  const r=[sN(),sA(),sE(),sP()];
+  if(r.includes(false)){banner($('#ss'),'Please fix the highlighted fields.');[$('#sn'),$('#sa'),$('#se'),$('#sp')][r.indexOf(false)].focus();return}
+  const name=$('#sn').value.trim().replace(/\s+/g,' '),age=+$('#sa').value,email=$('#se').value.trim().toLowerCase(),pw=$('#sp').value,role=su.srole.value;
+  if(allUsers()[email]){showErr($('#se'),'This email is already registered. Please sign in.');shake($('#se'));return}
+  const users=S.get('pd3_users',{});users[email]=[pw,role,name,age];
+  if(!S.set('pd3_users',users)){banner($('#ss'),'Could not save your account in this browser.');return}
+  signIn({email,role,name},false)});
+tilt(document.querySelector('.auth'));
+</script>
+</body>
+</html>

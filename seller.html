@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PropDeal · Seller</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav"><div class="wrap">
+  <a class="brand" href="login.html" aria-label="PropDeal home"></a>
+  <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Search by title or city" aria-label="Search properties"></label>
+  <div class="sp"></div>
+  <button class="btn" id="add" style="height:42px"><span aria-hidden="true">＋</span> Add property</button>
+  <div class="acct"><button class="av" id="av" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">·</button>
+    <div class="menu" id="menu" hidden><div class="mh"><b id="who"></b><small id="mail"></small><span class="rb" id="rl"></span></div><button class="mi" id="out" type="button">Log out</button></div></div>
+</div></header>
+<section class="hero2" id="hero"><div class="hbg"></div>
+  <div class="wrap"><div class="hl">
+    <h1>Manage your <em>listings</em></h1><p>Add properties, track your listings and respond to meeting requests from buyers.</p>
+  </div></div>
+</section>
+<main class="wrap">
+  <div class="seg" role="tablist" aria-label="Sections"><button class="tab" data-v="b" aria-selected="true">Listings</button><button class="tab" data-v="m" aria-selected="false">Meeting requests <span class="bdg" id="bdg" hidden></span></button></div>
+  <div id="vB"><div class="fbar"><div id="bar"><div class="chips" id="chips" role="group" aria-label="Filter listings"></div></div><div class="count" id="count" aria-live="polite"></div></div><div class="grid" id="grid"></div></div>
+  <div id="vM" hidden><div class="mlist" id="ml"></div></div>
+</main>
+<footer class="wrap" style="padding:0 20px 40px;color:var(--muted);font-size:13px">Demo listings. Photos from <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:inherit">Unsplash</a>.</footer>
+<dialog id="dlg">
+  <form id="pf" novalidate>
+    <div class="dh"><h2>Add a property</h2><button type="button" class="x" id="x" aria-label="Close">×</button></div>
+    <div class="fg">
+      <div class="full"><div class="roles seg2" role="radiogroup" aria-label="Listing for"><label><input type="radio" name="mode" value="sale" checked>For Sale</label><label><input type="radio" name="mode" value="rent">For Rent</label></div></div>
+      <label class="full">Title<input name="title" maxlength="150" placeholder="e.g. 5 Marla house near the park"></label>
+      <label>Type<select name="type"><option value="house">House</option><option value="apartment">Apartment</option><option value="shop">Shop</option><option value="plot">Plot</option></select></label>
+      <label><span id="plabel">Asking price (PKR)</span><input name="price" type="text" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="e.g. 15000000"></label>
+      <label>Price is<select name="neg"><option value="1">Negotiable</option><option value="0">Fixed</option></select></label>
+      <label class="rentonly" hidden>Minimum rental period (months)<input name="months" type="text" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="e.g. 6"></label>
+      <label>City<input name="city" maxlength="80" placeholder="e.g. Islamabad"></label>
+      <label>Area / locality<input name="locality" maxlength="60" placeholder="e.g. Bahria Town Phase 4"></label>
+      <label>Size<input name="area_size" maxlength="40" placeholder="e.g. 5 Marla"></label>
+      <label class="rm">Bedrooms<input name="beds" type="text" inputmode="numeric" maxlength="2" autocomplete="off"></label>
+      <label class="rm">Bathrooms<input name="baths" type="text" inputmode="numeric" maxlength="2" autocomplete="off"></label>
+      <label class="full">Short description (shown on the card)<input name="short" maxlength="140" placeholder="One line: what are you selling or renting?"></label>
+      <label class="full">Full description<textarea name="description" rows="4" maxlength="2000" placeholder="Condition, nearby places, documents, rent terms, anything buyers should know"></textarea></label>
+      <div class="full"><label>Photos (optional, up to 4)<input type="file" id="ph" accept="image/jpeg,image/png,image/webp" multiple></label><div class="pvs" id="pvs"></div>
+        <small>No photo? We’ll show an illustration for the property type.</small></div>
+    </div>
+    <p id="fe" role="alert"></p>
+    <div class="df"><button type="button" class="ghost" id="cancel">Cancel</button><button class="btn" id="save">Publish</button></div>
+  </form>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+<script>
+me=need(['seller']);nav();
+props=loadProps();favs=S.get('pd2_favs_'+me.email,[]);
+/* ---- add a property ---- */
+const dlg=$('#dlg'),pf=$('#pf'),F=pf.elements;let photos=[];
+function sync(){const rent=F['mode'].value==='rent',rm=['house','apartment'].includes(F['type'].value);
+  document.querySelectorAll('.rentonly').forEach(l=>l.hidden=!rent);document.querySelectorAll('.rm').forEach(l=>l.hidden=!rm);
+  $('#plabel').textContent=rent?'Monthly rent (PKR)':'Asking price (PKR)'}
+pf.addEventListener('change',sync);
+$('#add').addEventListener('click',()=>{sync();$('#fe').textContent='';dlg.showModal()});
+['#x','#cancel'].forEach(s=>$(s).addEventListener('click',()=>dlg.close()));
+function shrink(file){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(file);
+  im.onload=()=>{const s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.8))};im.onerror=no;im.src=u})}
+$('#ph').addEventListener('change',async e=>{
+  photos=[];$('#pvs').innerHTML='';showErr($('#ph'),'');
+  for(const f of [...e.target.files].slice(0,4)){
+    if(!/^image\/(jpeg|png|webp)$/.test(f.type)){showErr($('#ph'),'Choose JPG, PNG or WebP images.');e.target.value='';photos=[];$('#pvs').innerHTML='';return}
+    if(f.size>8e6){showErr($('#ph'),'Each image must be under 8 MB.');e.target.value='';photos=[];$('#pvs').innerHTML='';return}
+    try{photos.push(await shrink(f))}catch{showErr($('#ph'),'Could not read one of the images.');return}}
+  $('#pvs').innerHTML=photos.map(s=>`<img src="${s}" alt="Photo preview">`).join('')});
+digits(F['price'],12);digits(F['months'],2);digits(F['beds'],2);digits(F['baths'],2);
+const hid=n=>F[n].closest('label').hidden;
+const chk=[watch(F['title'],v=>vReq(v,'Title',3,150)),watch(F['price'],v=>vNum(v,F['mode'].value==='rent'?'Monthly rent':'Price',1,1e12)),watch(F['city'],vCity),
+  watch(F['short'],v=>vReq(v,'Short description',10,140)),watch(F['months'],v=>hid('months')?'':vNum(v,'Rental period',1,60)),
+  watch(F['beds'],v=>hid('beds')?'':vNum(v,'Bedrooms',0,50,true)),watch(F['baths'],v=>hid('baths')?'':vNum(v,'Bathrooms',0,50,true))];
+pf.addEventListener('submit',e=>{e.preventDefault();$('#fe').textContent='';
+  if(chk.map(f=>f()).includes(false)){$('#fe').textContent='Please fix the highlighted fields.';return}
+  const b=Object.fromEntries(new FormData(pf)),rm=['house','apartment'].includes(b.type),rent=b.mode==='rent',n=v=>v===''||v==null?null:Math.min(50,+v);
+  const p={id:Date.now(),owner:me.email,title:b.title.trim(),type:b.type,mode:b.mode,price:+b.price,neg:b.neg==='1',months:rent?+b.months:null,city:b.city.trim(),
+    locality:b.locality.trim()||null,area_size:b.area_size.trim()||null,beds:rm?n(b.beds):null,baths:rm?n(b.baths):null,description:b.short.trim(),long:b.description.trim()||null,feats:[],images:photos.slice()};
+  if(!S.set('pd2_props',[p,...S.get('pd2_props',[])])){$('#fe').textContent='Browser storage is full. Try fewer or smaller photos.';return}
+  props=loadProps();dlg.close();pf.reset();clearErrs(pf);photos=[];$('#pvs').innerHTML='';sync();render();toast('Property published')});
+/* ---- meeting requests ---- */
+const inbox=()=>getM().filter(m=>m.seller===me.email||m.seller===DEMO_SELLER);  // sample listings are shared inventory
+function badge(){const n=inbox().filter(m=>m.status==='pending').length;$('#bdg').hidden=!n;$('#bdg').textContent=n}
+function renderM(){const l=inbox();
+  $('#ml').innerHTML=l.length?l.map(m=>`<div class="mt"><div><b>${esc(m.propTitle)}</b>
+    <div class="mu">${esc(m.buyerName)} (${esc(m.buyer)}) would like to meet on ${fmtDate(m.date)} at ${m.time}${rentTxt(m)}</div>${m.note?`<div class="mu">“${esc(m.note)}”</div>`:''}</div>
+    <span class="pill ${m.status}">${m.status}</span>
+    ${m.status==='pending'?`<button class="btn sm" data-ok="${m.id}">Accept</button><button class="ghost sm" data-no="${m.id}">Decline</button>`:''}</div>`).join(''):'<div class="empty">No meeting requests yet. Buyers can request a meeting from any property.</div>'}
+$('#ml').addEventListener('click',e=>{const a=e.target.closest('[data-ok],[data-no]');if(!a)return;
+  const id=+(a.dataset.ok||a.dataset.no),st=a.dataset.ok?'confirmed':'declined';
+  setM(getM().map(m=>m.id===id?{...m,status:st}:m));renderM();badge();toast(st==='confirmed'?'Meeting confirmed':'Meeting declined')});
+browse();tabs(renderM);badge();propertyView();
+</script>
+</body>
+</html>
