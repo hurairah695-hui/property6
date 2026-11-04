@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "PropDeal": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "login.html",
+      "applicationUrl": "http://localhost:5080",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
