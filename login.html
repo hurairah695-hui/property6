@@ -37,7 +37,7 @@
       <div class="field"><label for="sp">Password</label><div class="ctl"><input id="sp" type="password" autocomplete="new-password"><button type="button" class="show" data-pw="#sp">Show</button></div>
         <ul class="rules" id="rules"><li data-r="len">6+ characters</li><li data-r="low">lowercase</li><li data-r="up">UPPERCASE</li><li data-r="num">number</li><li data-r="sp">special (@ # $)</li></ul></div>
       <div class="alert" id="ss" role="alert" hidden></div>
-      <button class="btn" type="submit" style="margin-top:14px">Create account</button>
+      <button class="btn" type="submit" style="margin-top:14px">Create your account</button>
     </form>
     <div class="demo" id="demo"><b>Demo accounts</b> (optional)
       <div class="row"><button type="button" data-r="seller">Use Seller</button><button type="button" data-r="buyer">Use Buyer</button><button type="button" data-r="admin">Use Admin</button></div></div>
@@ -52,7 +52,7 @@ const banner=(el,msg)=>{el.textContent=msg||'';el.hidden=!msg};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
   const s=b.dataset.v==='s';lf.hidden=s;su.hidden=!s;$('#demo').hidden=s;$('#h1').textContent=s?'Create account':'Sign in';
-  $('#lead').textContent=s?'Join as a buyer to book meetings, or as a seller to list properties.':'Welcome back. Choose your role to continue.';
+  $('#lead').textContent=s?'Join as a buyer to book meetings, or as a seller to list properties.':'Welcome back! Choose your role to continue.';
   clearErrs(lf);clearErrs(su);banner($('#ls'));banner($('#ss'))});
 document.querySelectorAll('[data-pw]').forEach(b=>b.addEventListener('click',()=>{const i=$(b.dataset.pw),s=i.type==='text';i.type=s?'password':'text';b.textContent=s?'Show':'Hide'}));
 document.querySelectorAll('.demo button').forEach(b=>b.addEventListener('click',()=>{
